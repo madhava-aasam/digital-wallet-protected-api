@@ -10,7 +10,7 @@ const userLogin = async (payload: any) => {
     const res = await axios.post(url, payload);
     return res;
   } catch (error) {
-    console.error("api error fetchUserInfo----------", error);
+    console.error("api error userLogin----------", error);
     throw error;
   }
 };
@@ -29,6 +29,20 @@ const fetchUserInfo = async (userId: string) => {
   }
 };
 
+const fetchUsers = async (userId: string) => {
+  // console.log("fetchUserInfo input -------------", userId);
+
+  try {
+    const url = `${config.openApi.url}/wallet/users`;
+
+    const res = await axios.get(url);
+    return res;
+  } catch (error) {
+    console.error("api error fetchUsers----------", error);
+    throw error;
+  }
+};
+
 const fetchUserWalletTransactions = async (userId: string) => {
   // console.log("fetchUserWalletTransactions input -------------", userId);
 
@@ -38,22 +52,22 @@ const fetchUserWalletTransactions = async (userId: string) => {
     const res = await axios.get(url);
     return res;
   } catch (error) {
-    console.error("api error fetchUserInfo----------", error);
+    console.error("api error fetchUserWalletTransactions----------", error);
     throw error;
   }
 };
 
 const createWalletTransaction = async (payload: any) => {
-  // console.log("createWalletTransaction input -------------", payload);
+  console.log("createWalletTransaction input -------------", payload);
 
   try {
     const url = `${config.openApi.url}/wallet/transaction`;
     const res = await axios.post(url, payload);
     return res;
   } catch (error) {
-    console.error("api error fetchUserInfo----------", error);
+    console.error("api error createWalletTransaction----------", error);
     throw error;
   }
 };
 
-export default { userLogin, fetchUserInfo, fetchUserWalletTransactions, createWalletTransaction };
+export default { userLogin, fetchUserInfo, fetchUsers, fetchUserWalletTransactions, createWalletTransaction };

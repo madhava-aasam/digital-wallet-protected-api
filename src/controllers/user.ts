@@ -4,21 +4,15 @@ import jwt from "jsonwebtoken";
 import config from "../config/config";
 
 const loginUser = async (req: Request, res: Response, next: NextFunction) => {
-  // const { userName, password } = req.body;
+  const resp: any = await walletOpenApi.userLogin(req.body);
 
-  const user = {
-    _id: "628868a55cf78f3849a88497",
-  };
-
-  const usr = await walletOpenApi.userLogin(req.body);
-
-  if (!usr) {
+  if (!resp || !resp.data.user) {
     return res.status(400).json({
       message: "incorrect username or password",
     });
   }
-  const token = jwt.sign({ _id: user._id }, config.auth.jwtTokenSecret);
-  // res.header("auth-token", token).send(token);
+
+  const token = jwt.sign({ _id: resp.data.user._id }, config.auth.jwtTokenSecret);
   return res.status(200).send({ token });
 };
 
@@ -34,6 +28,30 @@ const getUserInfo = async (req: any, res: Response, next: NextFunction) => {
     }
 
     const user = await walletOpenApi.fetchUserInfo(userId);
+
+    if (!user?.data?.users[0]) {
+      return res.status(500).json({
+        message: "no users found",
+      });
+    }
+    return res.status(200).send({user: user.data.users[0]});
+  } catch (error) {
+    console.error("getUserInfo", error);
+    throw error;
+  }
+};
+
+const getUsers = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "please login",
+      });
+    }
+
+    const user = await walletOpenApi.fetchUsers(userId);
 
     if (!user) {
       return res.status(500).json({
@@ -86,7 +104,6 @@ const getUserTransactions = async (
   next: NextFunction
 ) => {
   try {
-    // const userId = req.params.userId;
     const userId = req.user._id;
 
     if (!userId) {
@@ -97,7 +114,7 @@ const getUserTransactions = async (
 
     const trxns = await walletOpenApi.fetchUserWalletTransactions(userId);
 
-    if (!trxns) {
+    if (!trxns?.data?.transactions) {
       return res.status(500).json({
         message: "no users found",
       });
@@ -107,12 +124,12 @@ const getUserTransactions = async (
       return {
         trId: tr._id,
         sender: {
-          id: tr.senderId._id,
-          name: tr.senderId.name,
+          id: tr?.senderId?._id,
+          name: tr?.senderId?.name,
         },
         recipient: {
-          id: tr.recipientId._id,
-          name: tr.recipientId._id,
+          id: tr?.recipientId?._id,
+          name: tr?.recipientId?.name,
         },
         amount: tr.amount,
         notes: tr.notes,
@@ -152,6 +169,7 @@ const isUserAuthenticated = async (
 export default {
   loginUser,
   getUserInfo,
+  getUsers,
   transferMoney,
   getUserTransactions,
   isUserAuthenticated,
